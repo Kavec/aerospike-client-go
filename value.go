@@ -570,6 +570,58 @@ func (vl *MapValue) String() string {
 
 //////////////////////////////////////////////////////////////////////////////
 
+// GeoValue is a single geocoordinate.
+// Supported by Aerospike 3 servers.
+type GeoValue struct {
+	lat   float64
+	lon   float64
+	bytes []byte
+}
+
+// NewGeoValue generates a new geocoordinate value.
+func NewGeoValue(lat, lon float64) *GeoValue {
+	// TODO: Evaluate interface here in combination with vl.Object()
+	return &GeoValue{
+		lat: lat,
+		lon: lon,
+		bytes: func() []byte {
+			// TODO: Replace stub
+			return nil
+		},
+	}
+}
+
+func (vl *GeoValue) write(buffer []byte, offset int) (int, error) {
+	return copy(buffer[offset:], vl.bytes)
+}
+
+func (vl *GeoValue) pack(packer *packer) error {
+	_, err := packer.buffer.Write(vl.bytes)
+	return err
+}
+
+// GetType returns a wire protocol value indicator.
+func (vl *GeoValue) GetType() int {
+	return ParticleType.GEO
+}
+
+// GetObject returns the lat/long as the zeroth and first element of a slice of
+// of floats, respectively.
+func (vl *GeoValue) GetObject() interface{} {
+	return []float64{vl.lat, vl.long}
+}
+
+// String converts GeoValue to a [lat,long] precise to 7 decimal places.
+func (vl *GeoValue) String() string {
+	return fmt.Sprintf("[%.7f,%.7f]", vl.lat, vl.lon)
+}
+
+func (vl *GeoValue) reader() io.Reader {
+	return bytes.NewReader(vl.bytes)
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
 func bytesToParticle(ptype int, buf []byte, offset int, length int) (interface{}, error) {
 
 	switch ptype {
